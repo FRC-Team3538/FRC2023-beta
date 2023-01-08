@@ -12,8 +12,8 @@
 #include "units/base.h"                              // for unit_t, operator*
 #include "units/curvature.h"                         // for curvature_t
 #include "units/time.h"                              // for second_t
-#include "lib/pathplanner/PathPlanner.h"
-#include "lib/pathplanner/PathPlannerTrajectory.h"
+#include "pathplanner/lib/PathPlanner.h"
+#include "pathplanner/lib/PathPlannerTrajectory.h"
 #include "wpi/json.h"
 
 namespace rj
@@ -36,12 +36,12 @@ namespace rj
             if (ind == pp_traj.numStates() - 1)
             {
                 // Last point is special, use the previous point instead
-                heading_diff = pp_traj.getState(ind)->pose.Rotation() - pp_traj.getState(ind - 1)->pose.Rotation();
+                heading_diff = pp_traj.getState(ind).pose.Rotation() - pp_traj.getState(ind - 1).pose.Rotation();
             }
             else
             {
                 // Find the heading delta towards the next point.
-                heading_diff = pp_traj.getState(ind + 1)->pose.Rotation() - pp_state->pose.Rotation();
+                heading_diff = pp_traj.getState(ind + 1).pose.Rotation() - pp_state.pose.Rotation();
             }
 
             int curv_sign = 0;
@@ -55,7 +55,7 @@ namespace rj
                 curv_sign = -1;
             }
 
-            path.push_back(frc::TrajectoryGenerator::PoseWithCurvature{pp_state->pose, pp_state->curvature * curv_sign});
+            path.push_back(frc::TrajectoryGenerator::PoseWithCurvature{pp_state.pose, pp_state.curvature * curv_sign});
         }
 
         frc::Trajectory final_trajectory;
@@ -89,7 +89,7 @@ namespace rj
 
     std::vector<frc::Trajectory> AutoHelper::LoadTrajectorySplit(std::string name, frc::TrajectoryConfig *config)
     {
-        wpi::json pp_config = pathplanner::PathPlanner::loadConfig(name);
+        // wpi::json pp_config = pathplanner::PathPlanner::loadConfig(name);
 
         // velocity, accel don't matter
         // but let's use the configured ones anyway
@@ -106,12 +106,12 @@ namespace rj
             if (ind == pp_traj.numStates() - 1)
             {
                 // Last point is special, use the previous point instead
-                heading_diff = pp_traj.getState(ind)->pose.Rotation() - pp_traj.getState(ind - 1)->pose.Rotation();
+                heading_diff = pp_traj.getState(ind).pose.Rotation() - pp_traj.getState(ind - 1).pose.Rotation();
             }
             else
             {
                 // Find the heading delta towards the next point.
-                heading_diff = pp_traj.getState(ind + 1)->pose.Rotation() - pp_state->pose.Rotation();
+                heading_diff = pp_traj.getState(ind + 1).pose.Rotation() - pp_state.pose.Rotation();
             }
 
             int curv_sign = 0;
@@ -125,7 +125,7 @@ namespace rj
                 curv_sign = -1;
             }
 
-            path.push_back(frc::TrajectoryGenerator::PoseWithCurvature{pp_state->pose, pp_state->curvature * curv_sign});
+            path.push_back(frc::TrajectoryGenerator::PoseWithCurvature{pp_state.pose, pp_state.curvature * curv_sign});
         }
 
         std::vector<frc::Trajectory> trajectories;
@@ -136,34 +136,34 @@ namespace rj
         current_path.reserve(251);
 
         // handle all but final segment
-        for (wpi::json::reference waypoint : pp_config.at("waypoints"))
-        {
-            current_path.clear();
-            bool reverse_here = waypoint.at("isReversal");
-            invert = invert ^ reverse_here;
+        // for (wpi::json::reference waypoint : pp_config.at("waypoints"))
+        // {
+        //     current_path.clear();
+        //     bool reverse_here = waypoint.at("isReversal");
+        //     invert = invert ^ reverse_here;
 
-            for (std::size_t i = 250 * current_segment; i < 250 * (current_segment + 1) + 1; i++)
-            {
-                if (i >= path.size())
-                {
-                    break;
-                }
-                current_path.push_back(path[i]);
-            }
+        //     for (std::size_t i = 250 * current_segment; i < 250 * (current_segment + 1) + 1; i++)
+        //     {
+        //         if (i >= path.size())
+        //         {
+        //             break;
+        //         }
+        //         current_path.push_back(path[i]);
+        //     }
 
-            // final waypoint
-            if (current_path.size() == 0)
-            {
-                break;
-            }
-            auto current_traj = frc::TrajectoryParameterizer::TimeParameterizeTrajectory(current_path, config->Constraints(), config->StartVelocity(), config->EndVelocity(), config->MaxVelocity(), config->MaxAcceleration(), config->IsReversed() ^ invert);
+        //     // final waypoint
+        //     if (current_path.size() == 0)
+        //     {
+        //         break;
+        //     }
+        //     auto current_traj = frc::TrajectoryParameterizer::TimeParameterizeTrajectory(current_path, config->Constraints(), config->StartVelocity(), config->EndVelocity(), config->MaxVelocity(), config->MaxAcceleration(), config->IsReversed() ^ invert);
 
-            std::cout << "time for segment: " << current_traj.TotalTime().value() << std::endl;
+        //     std::cout << "time for segment: " << current_traj.TotalTime().value() << std::endl;
 
-            trajectories.push_back(current_traj);
+        //     trajectories.push_back(current_traj);
 
-            current_segment += 1;
-        }
+        //     current_segment += 1;
+        // }
 
         return trajectories;
     }

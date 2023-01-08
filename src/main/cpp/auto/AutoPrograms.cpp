@@ -14,6 +14,7 @@ AutoPrograms::AutoPrograms(Robotmap &IO) : IO(IO)
     m_chooser.SetDefaultOption("00 - None", "00 - None");
     m_chooser.AddOption(DriveForwardAuto::GetName(), DriveForwardAuto::GetName());
     frc::SmartDashboard::PutData("Choose Auto", &m_chooser);
+    
 }
 
 // Initialize the selected auto program

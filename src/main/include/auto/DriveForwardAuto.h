@@ -1,6 +1,7 @@
 #include <auto/AutoInterface.h>
 #include <Robotmap.h>
 #include <frc/Timer.h>
+#include <pathplanner/lib/PathPlannerTrajectory.h>
 
 class DriveForwardAuto: public AutoInterface {
 public:
@@ -15,11 +16,9 @@ public:
 private:
     Robotmap &IO;
 
-    units::meters_per_second_t speed = 0_mps;
-    units::degree_t heading = 0_deg;
-    units::second_t duration = 0_s;
-
     frc::Timer timer;
+
+    pathplanner::PathPlannerTrajectory m_traj;
 public:
     static std::string GetName();
 };

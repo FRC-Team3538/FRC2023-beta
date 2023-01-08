@@ -6,6 +6,11 @@
       "/SmartDashboard/Field": "Field2d"
     },
     "windows": {
+      "/SmartDashboard/Choose Auto": {
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/Field": {
         "window": {
           "visible": true
@@ -22,18 +27,26 @@
     },
     "transitory": {
       "SmartDashboard": {
+        "Choose Auto": {
+          "open": true
+        },
         "Drivetrain": {
           "FL": {
             "goal": {
               "open": true
             },
-            "open": true,
             "sim": {
               "open": true
             },
             "state": {
               "open": true
             }
+          },
+          "cmd": {
+            "open": true
+          },
+          "demand": {
+            "open": true
           },
           "open": true
         },
@@ -81,6 +94,84 @@
                 1.0
               ],
               "id": "NT:/SmartDashboard/Drivetrain/FL/goal/speed"
+            }
+          ]
+        }
+      ]
+    },
+    "Plot <1>": {
+      "plots": [
+        {
+          "axis": [
+            {
+              "autoFit": true
+            }
+          ],
+          "height": 520,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Drivetrain/cmd/x"
+            },
+            {
+              "color": [
+                0.3333333432674408,
+                0.658823549747467,
+                0.4078431725502014,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Drivetrain/demand/x"
+            }
+          ]
+        },
+        {
+          "height": 520,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Drivetrain/cmd/y"
+            },
+            {
+              "color": [
+                0.8666667342185974,
+                0.5176470875740051,
+                0.32156863808631897,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Drivetrain/demand/y"
+            }
+          ]
+        },
+        {
+          "height": 520,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Drivetrain/cmd/yaw"
+            },
+            {
+              "color": [
+                0.8666667342185974,
+                0.5176470875740051,
+                0.32156863808631897,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/Drivetrain/demand/yaw"
             }
           ]
         }
