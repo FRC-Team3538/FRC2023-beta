@@ -144,7 +144,7 @@ void SwerveModule::Stop()
 
 void SwerveModule::ConfigureSystem()
 {
-  std::cout << "A: " << m_turnPlant.A() << std::endl; std::cout << "B: " << m_turnPlant.B() << std::endl; std::cout << "C: " << m_turnPlant.C() << std::endl; std::cout << "D: " << m_turnPlant.D() << std::endl;
+  // std::cout << "A: " << m_turnPlant.A() << std::endl; std::cout << "B: " << m_turnPlant.B() << std::endl; std::cout << "C: " << m_turnPlant.C() << std::endl; std::cout << "D: " << m_turnPlant.D() << std::endl;
   if (frc::RobotBase::IsSimulation())
   {
     m_driveFeedforward.kS = 0_V;
@@ -311,14 +311,14 @@ void SwerveModule::InitSendable(wpi::SendableBuilder &builder)
   builder.AddDoubleProperty(moduleID + "/turn/MotorOutputPercent", [this] { return m_turningMotor.GetMotorOutputPercent(); }, nullptr);
   builder.AddDoubleProperty(moduleID + "/turn/MotorOutputSimVoltage", [this] { return m_turningMotor.GetSimCollection().GetMotorOutputLeadVoltage(); }, nullptr);
   builder.AddDoubleProperty(moduleID + "/turn/ClosedLoopError", [this] { return m_turningMotor.GetClosedLoopError(0); }, nullptr);
-  builder.AddDoubleProperty(moduleID + "/turn/ClosedLoopTarget", [this] { return m_turningMotor.GetClosedLoopTarget(0); }, nullptr);
+  // builder.AddDoubleProperty(moduleID + "/turn/ClosedLoopTarget", [this] { return m_turningMotor.GetClosedLoopTarget(0); }, nullptr);
 
   builder.AddDoubleProperty(moduleID + "/drive/SensorVel", [this] { return m_driveMotor.GetSelectedSensorVelocity(0); }, nullptr);
   builder.AddDoubleProperty(moduleID + "/drive/SensorPos", [this] { return m_driveMotor.GetSelectedSensorPosition(0); }, nullptr);
   builder.AddDoubleProperty(moduleID + "/drive/MotorOutputPercent", [this] { return m_driveMotor.GetMotorOutputPercent(); }, nullptr);
   builder.AddDoubleProperty(moduleID + "/drive/MotorOutputSimVoltage", [this] { return m_driveMotor.GetSimCollection().GetMotorOutputLeadVoltage(); }, nullptr);
   builder.AddDoubleProperty(moduleID + "/drive/ClosedLoopError", [this] { return m_driveMotor.GetClosedLoopError(0); }, nullptr);
-  builder.AddDoubleProperty(moduleID + "/drive/ClosedLoopTarget", [this] { return m_driveMotor.GetClosedLoopTarget(0); }, nullptr);
+  // builder.AddDoubleProperty(moduleID + "/drive/ClosedLoopTarget", [this] { return m_driveMotor.GetClosedLoopTarget(0); }, nullptr);
 }
 
 units::ampere_t SwerveModule::SimDrive(units::volt_t battery)

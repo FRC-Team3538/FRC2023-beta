@@ -18,6 +18,9 @@
 #include <frc/kinematics/SwerveDriveKinematics.h>
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
 
+#include <pathplanner/lib/PathPlannerTrajectory.h>
+#include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
+
 class Drivetrain : public Subsystem, 
                    public wpi::Sendable
 {
@@ -33,13 +36,16 @@ public:
     void LogDataEntries(wpi::log::DataLog &log);
 
     // Setters
-    void Drive(units::meters_per_second_t xSpeed,
-               units::meters_per_second_t ySpeed,
-               units::radians_per_second_t rot,
+    void Drive(frc::ChassisSpeeds speeds,
                bool openLoop = true);
-    void Drive(frc::Trajectory::State trajectoryState, units::radian_t yaw = 0_rad);
-    void ResetYaw(units::radian_t yaw);
-    void ResetOdometry(const frc::Pose2d &pose);
+    void Drive(pathplanner::PathPlannerTrajectory::PathPlannerState targetState);
+    void ResetPose(const frc::Pose2d &pose) {
+        ResetOdometry(GetYaw(), pose);
+    }
+    void ResetYaw(frc::Rotation2d heading) {
+        ResetOdometry(heading, GetPose());
+    }
+    void ResetOdometry(frc::Rotation2d heading, const frc::Pose2d &pose);
     void UpdateOdometry();
     void Stop();
     ErrorCode SeedEncoders();
@@ -262,11 +268,16 @@ private:
         frc::Pose2d()};
 
     // Trajectory Following
-    frc::HolonomicDriveController m_trajectoryController{
-        frc2::PIDController{2.0, 0.0, 0.0},                      // X-error
-        frc2::PIDController{2.0, 0.0, 0.0},                      // Y-error
-        frc::ProfiledPIDController<units::radian>{2.0, 0.0, 0.0, // Rotation-error
-                                                  frc::TrapezoidProfile<units::radian>::Constraints{
-                                                      360_deg_per_s,
-                                                      720_deg_per_s / 1_s}}};
+    pathplanner::PPHolonomicDriveController m_ppController{
+        frc2::PIDController{2.0, 0.0, 0.0},
+        frc2::PIDController{2.0, 0.0, 0.0},
+        frc2::PIDController{2.0, 0.0, 0.0}
+    };
+    // frc::HolonomicDriveController m_trajectoryController{
+    //     frc2::PIDController{2.0, 0.0, 0.0},                      // X-error
+    //     frc2::PIDController{2.0, 0.0, 0.0},                      // Y-error
+    //     frc::ProfiledPIDController<units::radian>{2.0, 0.0, 0.0, // Rotation-error
+    //                                               frc::TrapezoidProfile<units::radian>::Constraints{
+    //                                                   360_deg_per_s,
+    //                                                   720_deg_per_s / 1_s}}};
 };

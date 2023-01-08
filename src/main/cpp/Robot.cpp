@@ -11,7 +11,6 @@
 #include "frc/Errors.h"                             // for RuntimeError
 #include "lib/PS4Controller.h"                    // for PS4Controller
 #include "lib/PneumaticHub.h"                     // for PneumaticHub
-#include "lib/pathplanner/PathPlannerTrajectory.h"  // for pathplanner
 #include "units/base.h"                             // for unit_t, operator-
 #include "units/math.h"                             // for abs
 #include "units/time.h"
@@ -46,7 +45,7 @@ void Robot::RobotInit()
   frc::DriverStation::StartDataLog(log, true);
 
   seedEncoderTimer.Start();
-  IO.drivetrain.ResetYaw(0_deg);
+  IO.drivetrain.ResetYaw(frc::Rotation2d{});
 
   // localization_flag_entry.SetDefaultBoolean(false);
 }
@@ -109,7 +108,7 @@ void Robot::TeleopPeriodic()
 
   // std::cout << (forward / 1_mps).value() << ", " << (strafe / 1_mps).value() << ", " << (rotate / 1_rad_per_s).value() << std::endl;
 
-  IO.drivetrain.Drive(forward, strafe, rotate, false);
+  IO.drivetrain.Drive(frc::ChassisSpeeds{forward, strafe, rotate}, false);
 }
 
 void Robot::DisabledInit()

@@ -24,7 +24,7 @@ void Drivetrain::LogDataEntries(wpi::log::DataLog &log)
 void Drivetrain::ConfigureSystem()
 {
   m_imu.ZeroGyroBiasNow(50);
-  ResetYaw(0_deg);
+  ResetOdometry(frc::Rotation2d{}, GetPose());
 
   m_yawLockPID.EnableContinuousInput(-0.5_tr / 1_rad, 0.5_tr / 1_rad);
   m_yawLockPID.SetTolerance(3_deg / 1_rad);
@@ -38,27 +38,24 @@ void Drivetrain::ConfigureSystem()
   m_backRight.ConfigureSystem();
 }
 
-void Drivetrain::Drive(frc::Trajectory::State trajectoryState, units::radian_t yaw)
+void Drivetrain::Drive(pathplanner::PathPlannerTrajectory::PathPlannerState targetState)
 {
-  const auto command = m_trajectoryController.Calculate(
+  const auto command = m_ppController.calculate(
       m_poseEstimator.GetEstimatedPosition(),
-      trajectoryState,
-      yaw);
+      targetState);
 
-  Drive(command.vx, command.vy, command.omega, false);
+  Drive(command, false);
 }
 
-void Drivetrain::Drive(units::meters_per_second_t xSpeed,
-                       units::meters_per_second_t ySpeed,
-                       units::radians_per_second_t rot,
+void Drivetrain::Drive(frc::ChassisSpeeds speed,
                        bool openLoop)
 {
 
   // Heading Lock
-  constexpr auto noRotThreshold = 0.1_deg_per_s;
-  m_YawLockActive = units::math::abs(rot) < noRotThreshold;
+  // constexpr auto noRotThreshold = 0.1_deg_per_s;
+  // m_YawLockActive = units::math::abs(rot) < noRotThreshold;
 
-  const auto trans_mag = units::math::sqrt(xSpeed * xSpeed + ySpeed * ySpeed);
+  // const auto trans_mag = units::math::sqrt(xSpeed * xSpeed + ySpeed * ySpeed);
   
   // if (m_YawLockActive && trans_mag > 0.1_mps)
   // {
@@ -81,11 +78,11 @@ void Drivetrain::Drive(units::meters_per_second_t xSpeed,
   // Transform Field Oriented command to a Robot Relative Command
   if (m_fieldRelative)
   {
-    m_command = frc::ChassisSpeeds::FromFieldRelativeSpeeds(xSpeed, ySpeed, rot, GetYaw());
+    m_command = frc::ChassisSpeeds::FromFieldRelativeSpeeds(speed.vx, speed.vy, speed.omega, GetYaw());
   }
   else
   {
-    m_command = frc::ChassisSpeeds{xSpeed, ySpeed, rot};
+    m_command = speed;
   }
 
   m_originalCommand = m_command;
@@ -143,31 +140,17 @@ void Drivetrain::UpdateOdometry()
   m_estimatedPose->SetPose(estPose);
 }
 
-void Drivetrain::ResetYaw(units::radian_t heading)
+void Drivetrain::ResetOdometry(frc::Rotation2d heading, const frc::Pose2d &pose)
 {
-  m_imu.SetYaw(heading / 1_deg, 50);
-  auto pose = frc::Pose2d(GetPose().Translation(), frc::Rotation2d{heading});
+  m_imu.SetYaw(heading.Radians() / 1_deg, 50);
 
-  m_poseEstimator.ResetPosition(frc::Rotation2d{heading}, {
-                         m_frontLeft.GetModulePosition(),
-                         m_frontRight.GetModulePosition(),
-                         m_backLeft.GetModulePosition(),
-                         m_backRight.GetModulePosition()}, pose);
-
-  m_yawLockPID.Reset();
-  m_yawLockPID.SetSetpoint(heading / 1_rad);
-}
-
-void Drivetrain::ResetOdometry(const frc::Pose2d &pose)
-{
-  //m_odometry.ResetPosition(pose, GetYaw());
-  m_poseEstimator.ResetPosition(GetYaw(), {
+  m_poseEstimator.ResetPosition(heading, {
                          m_frontLeft.GetModulePosition(),
                          m_frontRight.GetModulePosition(),
                          m_backLeft.GetModulePosition(),
                          m_backRight.GetModulePosition()}, pose);
   m_yawLockPID.Reset();
-  m_yawLockPID.SetSetpoint(GetYaw().Radians() / 1_rad);
+  m_yawLockPID.SetSetpoint(heading.Radians() / 1_rad);
 }
 
 frc::ChassisSpeeds Drivetrain::GetChassisSpeeds()
