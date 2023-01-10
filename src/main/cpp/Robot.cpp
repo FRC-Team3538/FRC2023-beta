@@ -75,7 +75,7 @@ void Robot::RobotPeriodic()
 
   if (IO.mainController.GetOptionsButtonPressed())
   {
-    IO.drivetrain.ResetYaw(0_deg);
+    IO.drivetrain.ResetYaw(frc::Rotation2d{});
   }
 
   if (IO.mainController.GetShareButtonPressed())
@@ -102,9 +102,9 @@ void Robot::TeleopInit()
 void Robot::TeleopPeriodic()
 {
   // DRIVE CODE
-  auto forward = deadband(IO.mainController.GetLeftY(), 0.1, 1.0) * Drivetrain::kMaxSpeedLinear;
-  auto strafe = deadband(IO.mainController.GetLeftX(), 0.1, 1.0) * Drivetrain::kMaxSpeedLinear;
-  auto rotate = deadband(IO.mainController.GetRightX(), 0.1, 1.0) * Drivetrain::kMaxSpeedAngular;
+  auto forward = deadband(-IO.mainController.GetLeftY(), 0.1, 1.0) * Drivetrain::kMaxSpeedLinear;
+  auto strafe = deadband(-IO.mainController.GetLeftX(), 0.1, 1.0) * Drivetrain::kMaxSpeedLinear;
+  auto rotate = deadband(-IO.mainController.GetRightX(), 0.1, 1.0) * Drivetrain::kMaxSpeedAngular;
 
   // std::cout << (forward / 1_mps).value() << ", " << (strafe / 1_mps).value() << ", " << (rotate / 1_rad_per_s).value() << std::endl;
 

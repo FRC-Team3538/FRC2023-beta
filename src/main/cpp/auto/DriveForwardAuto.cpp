@@ -15,8 +15,8 @@ DriveForwardAuto::~DriveForwardAuto()
 
 void DriveForwardAuto::Init()
 {
-    fmt::print("Starting basic auton loop\n");
-    IO.drivetrain.ResetOdometry(m_traj.getInitialState().holonomicRotation, m_traj.getInitialHolonomicPose());
+    // fmt::print("Starting basic auton loop\n");
+    IO.drivetrain.ResetOdometry(m_traj.getInitialHolonomicPose());
     IO.drivetrain.SetFieldCentric(false);
 
     timer.Start();
@@ -24,13 +24,13 @@ void DriveForwardAuto::Init()
 
 void DriveForwardAuto::Run()
 {
-    fmt::print("{} >? {}\n", m_traj.getTotalTime(), timer.Get());
+    // fmt::print("{} >? {}\n", m_traj.getTotalTime(), timer.Get());
     if (m_traj.getTotalTime() < timer.Get()) {
         IO.drivetrain.Stop();
-        fmt::print("auton done!\n");
+        // fmt::print("auton done!\n");
         return;
     }
-    fmt::print("basic auton loop\n");
+    // fmt::print("basic auton loop\n");
 
     IO.drivetrain.Drive(m_traj.sample(timer.Get()));
 }

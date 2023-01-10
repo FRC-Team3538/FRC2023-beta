@@ -39,13 +39,8 @@ public:
     void Drive(frc::ChassisSpeeds speeds,
                bool openLoop = true);
     void Drive(pathplanner::PathPlannerTrajectory::PathPlannerState targetState);
-    void ResetPose(const frc::Pose2d &pose) {
-        ResetOdometry(GetYaw(), pose);
-    }
-    void ResetYaw(frc::Rotation2d heading) {
-        ResetOdometry(heading, GetPose());
-    }
-    void ResetOdometry(frc::Rotation2d heading, const frc::Pose2d &pose);
+    void ResetYaw(const frc::Rotation2d &yaw);
+    void ResetOdometry(const frc::Pose2d &pose);
     void UpdateOdometry();
     void Stop();
     ErrorCode SeedEncoders();
@@ -68,12 +63,16 @@ public:
     void SetFieldCentric(bool fieldCentric);
 
     // Public config values
+    static constexpr units::meters_per_second_t kTrueMaxSpeedLinear = 5.2_mps;
+    static constexpr units::radians_per_second_t kTrueMaxSpeedAngular = 14.125_rad_per_s;
     static constexpr units::meters_per_second_t kMaxSpeedLinear = 16_fps;
     static constexpr units::radians_per_second_t kMaxSpeedAngular = 360_deg_per_s;
     static constexpr units::meters_per_second_squared_t kMaxAccelerationLinear = 20_fps_sq;
     static constexpr units::inch_t kWheelToWheel = 20.5_in;
 
 private:
+
+    frc::Rotation2d GetIMUYaw();
     bool m_fieldRelative = true;
 
     // Configuration
@@ -95,6 +94,7 @@ private:
     // Control
     frc::ChassisSpeeds m_command;
     frc::ChassisSpeeds m_originalCommand;
+    frc::ChassisSpeeds m_input;
 
     static constexpr auto kMaxModuleLinearAcceleration = 80.0_mps_sq;
     static constexpr auto kMaxModuleLinearJerk = 200.0_mps_sq / 1_s;

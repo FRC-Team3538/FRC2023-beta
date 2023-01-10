@@ -24,7 +24,7 @@ void Drivetrain::LogDataEntries(wpi::log::DataLog &log)
 void Drivetrain::ConfigureSystem()
 {
   m_imu.ZeroGyroBiasNow(50);
-  ResetOdometry(frc::Rotation2d{}, GetPose());
+  ResetOdometry(GetPose());
 
   m_yawLockPID.EnableContinuousInput(-0.5_tr / 1_rad, 0.5_tr / 1_rad);
   m_yawLockPID.SetTolerance(3_deg / 1_rad);
@@ -40,9 +40,11 @@ void Drivetrain::ConfigureSystem()
 
 void Drivetrain::Drive(pathplanner::PathPlannerTrajectory::PathPlannerState targetState)
 {
-  const auto command = m_ppController.calculate(
+  auto command = m_ppController.calculate(
       m_poseEstimator.GetEstimatedPosition(),
       targetState);
+
+  command.omega = -1 *command.omega;
 
   Drive(command, false);
 }
@@ -75,6 +77,8 @@ void Drivetrain::Drive(frc::ChassisSpeeds speed,
   //   m_yawLockPID.SetSetpoint(GetYaw().Radians() / 1_rad);
   // }
 
+  m_input = speed;
+  
   // Transform Field Oriented command to a Robot Relative Command
   if (m_fieldRelative)
   {
@@ -89,8 +93,8 @@ void Drivetrain::Drive(frc::ChassisSpeeds speed,
 
   // Calculate desired swerve states
   auto states = m_kinematics.ToSwerveModuleStates(m_command);
-  m_kinematics.DesaturateWheelSpeeds(&states, kMaxSpeedLinear);
-  // m_altKinematics.NormalizeWheelSpeeds(&states, m_command);
+  // m_kinematics.DesaturateWheelSpeeds(&states, m_command, 16_fps, 16_fps, 360_deg_per_s);
+  m_kinematics.DesaturateWheelSpeeds(&states, m_command, kTrueMaxSpeedLinear, kTrueMaxSpeedLinear, kTrueMaxSpeedAngular);
 
   m_command = m_kinematics.ToChassisSpeeds(states);
 
@@ -110,20 +114,19 @@ void Drivetrain::Stop()
   m_backRight.Stop();
 }
 
+frc::Rotation2d Drivetrain::GetIMUYaw()
+{
+  return m_imu.GetRotation2d();
+}
+
 frc::Rotation2d Drivetrain::GetYaw()
 {
-  return frc::Rotation2d{units::degree_t{m_imu.GetYaw()}};
+  return GetPose().Rotation();
 }
 
 void Drivetrain::UpdateOdometry()
 {
-//   auto odoPose = m_odometry.Update(GetYaw(),
-//                     m_frontLeft.GetState(),
-//                     m_frontRight.GetState(),
-//                     m_backLeft.GetState(),
-//                     m_backRight.GetState());
-
-  auto estPose = m_poseEstimator.Update(GetYaw(),{
+  auto estPose = m_poseEstimator.Update(GetIMUYaw(),{
                          m_frontLeft.GetModulePosition(),
                          m_frontRight.GetModulePosition(),
                          m_backLeft.GetModulePosition(),
@@ -134,23 +137,23 @@ void Drivetrain::UpdateOdometry()
                                                   m_backLeft.GetState(),
                                                   m_backRight.GetState()});
 
-  // auto p = m_odometry.GetPose();
-  // frc::Pose2d fliperoo = {-p.Y(), p.X(), p.Rotation().RotateBy(90_deg)}; // Driver Station PoV
-  // m_odometryPose->SetPose(odoPose);
   m_estimatedPose->SetPose(estPose);
 }
 
-void Drivetrain::ResetOdometry(frc::Rotation2d heading, const frc::Pose2d &pose)
+void Drivetrain::ResetYaw(const frc::Rotation2d &yaw)
 {
-  m_imu.SetYaw(heading.Radians() / 1_deg, 50);
+  m_imu.SetYaw(yaw.Radians() / 1_deg, 50);
+  m_yawLockPID.Reset();
+  m_yawLockPID.SetSetpoint(yaw.Radians() / 1_rad);
+}
 
-  m_poseEstimator.ResetPosition(heading, {
+void Drivetrain::ResetOdometry(const frc::Pose2d &pose)
+{
+  m_poseEstimator.ResetPosition(GetIMUYaw(), {
                          m_frontLeft.GetModulePosition(),
                          m_frontRight.GetModulePosition(),
                          m_backLeft.GetModulePosition(),
                          m_backRight.GetModulePosition()}, pose);
-  m_yawLockPID.Reset();
-  m_yawLockPID.SetSetpoint(heading.Radians() / 1_rad);
 }
 
 frc::ChassisSpeeds Drivetrain::GetChassisSpeeds()
@@ -187,6 +190,13 @@ void Drivetrain::InitSendable(wpi::SendableBuilder &builder)
   //     "odometry/yaw", [this] { return m_odometry.GetPose().Rotation().Degrees().value(); }, nullptr);
 
   // Command
+    builder.AddDoubleProperty(
+      "input/x", [this] { return m_input.vx / 1_mps; }, nullptr);
+  builder.AddDoubleProperty(
+      "input/y", [this] { return m_input.vy / 1_mps; }, nullptr);
+  builder.AddDoubleProperty(
+      "input/yaw", [this] { return m_input.omega / 1_rad_per_s; }, nullptr);
+
   builder.AddDoubleProperty(
       "cmd/x", [this] { return m_command.vx / 1_mps; }, nullptr);
   builder.AddDoubleProperty(
